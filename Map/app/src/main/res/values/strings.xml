@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MapQuest</string>
+    <string name="title_activity_hud">Map</string>
+    <string name="MapKey">AIzaSyBAUMk9HVPbjHUMdUFm76z2BazvrPBUA5g</string>
+</resources>
