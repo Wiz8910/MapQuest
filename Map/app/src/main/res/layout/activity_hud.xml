@@ -2,4 +2,15 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:id="@+id/map" tools:context=".HUD"
     android:name="com.google.android.gms.maps.SupportMapFragment"
-    tools:layout="@layout/activity_hud" />
+    tools:layout="@layout/activity_hud">
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text ="@string/MapAdd"
+        android:id="@+id/create"
+        android:onClick="SetPins"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+</fragment>
+

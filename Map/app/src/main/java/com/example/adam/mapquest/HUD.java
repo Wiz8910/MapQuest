@@ -1,15 +1,20 @@
 package com.example.adam.mapquest;
 
+import android.graphics.Canvas;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+//import com.google.android.gms.maps.GeoPoint;
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -24,11 +29,13 @@ public class HUD extends FragmentActivity {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
+    private boolean drop_pin;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hud);
         setUpMapIfNeeded();
+        drop_pin = true;
     }
 
     @Override
@@ -79,7 +86,6 @@ public class HUD extends FragmentActivity {
         // mGoogleMap.setMapType(mGoogleMap.MAP_TYPE_SATELLITE);
 
         try {
-            Toast.makeText(getApplicationContext(), "1", Toast.LENGTH_SHORT).show();
             LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
             // getting GPS status
@@ -92,38 +98,32 @@ public class HUD extends FragmentActivity {
 
             if (!isGPSEnabled && !isNetworkEnabled) {
                 // no network provider is enabled
-                Toast.makeText(getApplicationContext(), "4", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "No Network or GPS", Toast.LENGTH_SHORT).show();
             } else {
                 // First get location from Network Provider
-                Toast.makeText(getApplicationContext(), "5", Toast.LENGTH_SHORT).show();
                 if (isNetworkEnabled) {
-                    Toast.makeText(getApplicationContext(), "2", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Network Enabled", Toast.LENGTH_SHORT).show();
                     Log.d("Network", "Network");
                     if (locationManager != null) {
-                        Toast.makeText(getApplicationContext(), "10", Toast.LENGTH_SHORT).show();
                         Criteria criteria = new Criteria();
                         Location Currentloc =locationManager.getLastKnownLocation(
                                 locationManager.getBestProvider(criteria,true));
                         if (Currentloc != null) {
-                            Toast.makeText(getApplicationContext(), "3", Toast.LENGTH_SHORT).show();
                             double latitude = Currentloc.getLatitude();
                             double longitude = Currentloc.getLongitude();
                             mMap.addMarker(new MarkerOptions().
                                     position(new LatLng(latitude, longitude)).title("Marker"));
                         }
-
                     }
                 }
                 else if(isGPSEnabled){
-                    Toast.makeText(getApplicationContext(), "8", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "GPS Enabled", Toast.LENGTH_SHORT).show();
                     locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                     Log.d("Network", "Network");
                     if (locationManager != null) {
-                        Toast.makeText(getApplicationContext(), "3", Toast.LENGTH_SHORT).show();
                         Location Currentloc = locationManager
                                 .getLastKnownLocation(LocationManager.GPS_PROVIDER);
                         if (Currentloc != null) {
-                            Toast.makeText(getApplicationContext(), "3", Toast.LENGTH_SHORT).show();
                             double latitude = Currentloc.getLatitude();
                             double longitude = Currentloc.getLongitude();
                             mMap.addMarker(new MarkerOptions().
@@ -151,4 +151,59 @@ public class HUD extends FragmentActivity {
             //need to add error handling here
         }
     }
+    public void SetPins(View v){
+        if(drop_pin==true){//if here we know they desire to drop pins
+            mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                @Override
+                public void onMapClick(LatLng latLng) {
+                    mMap.addMarker(new MarkerOptions().
+                            position(new LatLng(latLng.latitude, latLng.longitude)).title("Marker"));
+                }
+            });
+            drop_pin=false;
+        }
+        else{//otherwise we remove that functionality
+            mMap.setOnMapClickListener(null);
+            drop_pin = true;
+        }
+    }
+    /*
+    class MapTouchSensor extends com.google.android.maps.Overlay
+    {
+
+        @Override
+        public boolean draw(Canvas canvas, MapView mapview,
+                             boolean shadow, long when)
+        {
+
+            return false;
+        }
+
+
+        @Override
+        public boolean onTouchEvent(MotionEvent event, MapView mapView){
+            //activates when user lifts his finger
+            if(event.getAction() == MotionEvent.ACTION_UP){
+                GeoPoint p = mapView.getProjection.fromPixels(
+                        (int) event.getX(), (int)event.getY());
+                Toast.makeText(getBaseContext(),
+                        p.getLatitudeE6()/1E6 + ","+
+                        p.getLongitudeE6()/1E6, Toast.LENGTH_SHORT).show();
+
+            }
+            return false;
+        }
+
+        @Override
+        public void onCreate(Bundle savedInstanceState){
+            super.onCreate(savedInstanceState);
+            mapView = (MapView) findViewById(R.id.mapview);
+
+            MapOverLay mapOverlay = new MapOverlay();
+            List<Overlay> listofOverlays = mapView.getOverlays();
+
+            listofOverlays.clear();
+            listofOverlays.add(mapOverlay);
+        }
+    }*/
 }
