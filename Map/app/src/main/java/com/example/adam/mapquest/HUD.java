@@ -6,9 +6,12 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -17,7 +20,11 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class HUD extends FragmentActivity {
 
@@ -29,10 +36,18 @@ public class HUD extends FragmentActivity {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
+    private EditText text;//our textbox for title
+    private Marker current;//current marker for textbox
     private boolean drop_pin;
+    private boolean setList;
+    private Timer timer = new Timer();
+    //delay time in ms
+    private final long DELAY = 4000;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setList = true;
         setContentView(R.layout.activity_hud);
         setUpMapIfNeeded();
         drop_pin = true;
@@ -73,8 +88,7 @@ public class HUD extends FragmentActivity {
     }
 
     /**
-     * This is where we can add markers or lines, add listeners or move the camera. In this case, we
-     * just add a marker near Africa.
+     * This is where we can add markers or lines, add listeners or move the camera.
      * <p/>
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
@@ -106,17 +120,66 @@ public class HUD extends FragmentActivity {
                     Log.d("Network", "Network");
                     if (locationManager != null) {
                         Criteria criteria = new Criteria();
-                        Location Currentloc =locationManager.getLastKnownLocation(
-                                locationManager.getBestProvider(criteria,true));
+                        Location Currentloc = locationManager.getLastKnownLocation(
+                                locationManager.getBestProvider(criteria, true));
                         if (Currentloc != null) {
                             double latitude = Currentloc.getLatitude();
                             double longitude = Currentloc.getLongitude();
-                            mMap.addMarker(new MarkerOptions().
-                                    position(new LatLng(latitude, longitude)).title("Marker"));
+                            MarkerOptions temp = new MarkerOptions().
+                                    position(new LatLng(latitude, longitude)).title("Marker");
+                            mMap.addMarker(temp);
+                            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                                @Override
+                                public boolean onMarkerClick(Marker marker) {
+                                    if (text == null) {
+                                        text = (EditText) findViewById(R.id.marker_title);
+                                    }
+                                    text.setVisibility(View.VISIBLE);
+                                    text.setText(marker.getTitle());
+                                    current = marker;
+                                    text.addTextChangedListener(new TextWatcher() {
+                                        public void afterTextChanged(Editable s) {
+                                            if (timer != null) {
+                                                timer.cancel();
+                                            }
+                                            final Editable l = s;
+                                            timer = new Timer();
+                                            timer.schedule(new TimerTask() {
+                                                @Override
+                                                public void run() {
+                                                    runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            if (current != null) {
+                                                                if (current.getTitle() != l.toString()) {
+                                                                    current.setTitle(l.toString());
+                                                                    text.setVisibility(View.INVISIBLE);
+                                                                    current = null;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    );
+                                                }
+                                            }, DELAY);
+                                        }
+
+                                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                                        }
+
+                                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                            if (timer != null) {
+                                                timer.cancel();
+                                            }
+                                        }
+                                    });
+                                    text.requestFocus();
+                                    return true;
+                                }
+                            });
                         }
                     }
-                }
-                else if(isGPSEnabled){
+                } else if (isGPSEnabled) {
                     Toast.makeText(getApplicationContext(), "GPS Enabled", Toast.LENGTH_SHORT).show();
                     locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                     Log.d("Network", "Network");
@@ -126,10 +189,58 @@ public class HUD extends FragmentActivity {
                         if (Currentloc != null) {
                             double latitude = Currentloc.getLatitude();
                             double longitude = Currentloc.getLongitude();
-                            mMap.addMarker(new MarkerOptions().
-                                    position(new LatLng(latitude, longitude)).title("Marker"));
-                        }
+                            MarkerOptions temp = new MarkerOptions().
+                                    position(new LatLng(latitude, longitude)).title("Marker");
+                            mMap.addMarker(temp);
+                            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                                @Override
+                                public boolean onMarkerClick(Marker marker) {
+                                    if (text == null) {
+                                        text = (EditText) findViewById(R.id.marker_title);
+                                    }
+                                    text.setVisibility(View.VISIBLE);
+                                    text.setText(marker.getTitle());
+                                    current = marker;
+                                    text.addTextChangedListener(new TextWatcher() {
+                                        public void afterTextChanged(Editable s) {
+                                            if (timer != null) {
+                                                timer.cancel();
+                                            }
+                                            final Editable l = s;
+                                            timer = new Timer();
+                                            timer.schedule(new TimerTask() {
+                                                @Override
+                                                public void run() {
+                                                    runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            if (current != null) {
+                                                                if (current.getTitle() != l.toString()) {
+                                                                    current.setTitle(l.toString());
+                                                                    text.setVisibility(View.INVISIBLE);
+                                                                    current = null;
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            }, DELAY);
+                                        }
 
+                                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                                        }
+
+                                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                            if (timer != null) {
+                                                timer.cancel();
+                                            }
+                                        }
+                                    });
+                                    text.requestFocus();
+                                    return true;
+                                }
+                            });
+                        }
                     }
                 }
             }
@@ -151,59 +262,70 @@ public class HUD extends FragmentActivity {
             //need to add error handling here
         }
     }
-    public void SetPins(View v){
-        if(drop_pin==true){//if here we know they desire to drop pins
+
+    public void SetPins(View v) {
+        if (drop_pin == true) {//if here we know they desire to drop pins
             mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                 @Override
                 public void onMapClick(LatLng latLng) {
-                    mMap.addMarker(new MarkerOptions().
-                            position(new LatLng(latLng.latitude, latLng.longitude)).title("Marker"));
+                    MarkerOptions temp = new MarkerOptions().
+                            position(new LatLng(latLng.latitude, latLng.longitude)).title("Marker");
+                    mMap.addMarker(temp);
+                    mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                        @Override
+                        public boolean onMarkerClick(Marker marker) {
+                            if (text == null) {
+                                text = (EditText) findViewById(R.id.marker_title);
+                            }
+                            text.setVisibility(View.VISIBLE);
+                            text.setText(marker.getTitle());
+                            current = marker;
+                            text.addTextChangedListener(new TextWatcher() {
+                                public void afterTextChanged(Editable s) {
+                                    if (timer != null) {
+                                        timer.cancel();
+                                    }
+                                    final Editable l = s;
+                                    timer = new Timer();
+                                    timer.schedule(new TimerTask() {
+                                        @Override
+                                        public void run() {
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    if (current != null) {
+                                                        if (current.getTitle() != l.toString()) {
+                                                            current.setTitle(l.toString());
+                                                            text.setVisibility(View.INVISIBLE);
+                                                            current = null;
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }, DELAY);
+                                }
+
+                                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                                }
+
+                                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                    if (timer != null) {
+                                        timer.cancel();
+                                    }
+                                }
+                            });
+                            text.requestFocus();
+                            return true;
+                        }
+                    });
                 }
             });
-            drop_pin=false;
-        }
-        else{//otherwise we remove that functionality
+            drop_pin = false;
+        } else {//otherwise we remove that functionality
             mMap.setOnMapClickListener(null);
             drop_pin = true;
         }
     }
-    /*
-    class MapTouchSensor extends com.google.android.maps.Overlay
-    {
-
-        @Override
-        public boolean draw(Canvas canvas, MapView mapview,
-                             boolean shadow, long when)
-        {
-
-            return false;
-        }
-
-
-        @Override
-        public boolean onTouchEvent(MotionEvent event, MapView mapView){
-            //activates when user lifts his finger
-            if(event.getAction() == MotionEvent.ACTION_UP){
-                GeoPoint p = mapView.getProjection.fromPixels(
-                        (int) event.getX(), (int)event.getY());
-                Toast.makeText(getBaseContext(),
-                        p.getLatitudeE6()/1E6 + ","+
-                        p.getLongitudeE6()/1E6, Toast.LENGTH_SHORT).show();
-
-            }
-            return false;
-        }
-
-        @Override
-        public void onCreate(Bundle savedInstanceState){
-            super.onCreate(savedInstanceState);
-            mapView = (MapView) findViewById(R.id.mapview);
-
-            MapOverLay mapOverlay = new MapOverlay();
-            List<Overlay> listofOverlays = mapView.getOverlays();
-
-            listofOverlays.clear();
-            listofOverlays.add(mapOverlay);
-        }
-    }*/
 }
+
