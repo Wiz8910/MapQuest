@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">MapQuest</string>
+
+    <string name="title_section1">My Map</string>
+    <string name="title_section2">My Profile</string>
+    <string name="title_section3">Friends List</string>
+    <string name="title_section4">Meet Ups</string>
+    <string name="title_section5">Invites</string>
+    <string name="title_section6">Create Event</string>
+    <string name="title_section7">App Info</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_example"></string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_maps">Map</string>
+</resources>
