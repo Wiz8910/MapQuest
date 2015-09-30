@@ -1,5 +1,32 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:id="@+id/map"
-    tools:context="com.example.robertpreston.myapplication.MapsActivity"
-    android:name="com.google.android.gms.maps.SupportMapFragment" />
+    android:layout_height="match_parent" android:id="@+id/mapscreen" tools:context=".HUD"
+    android:clickable="true"
+    tools:layout="@layout/activity_maps">
+    <fragment android:layout_width="match_parent"
+        android:layout_height="match_parent" android:id="@+id/map" tools:context=".HUD"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        tools:layout="@layout/activity_maps">
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text ="@string/MapAdd"
+            android:id="@+id/create"
+            android:onClick="SetPins"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true" />
+    </fragment>
+    <EditText
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:id= "@+id/marker_title"
+        android:visibility="invisible"
+        android:text = "Default"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/map"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+
+</RelativeLayout>

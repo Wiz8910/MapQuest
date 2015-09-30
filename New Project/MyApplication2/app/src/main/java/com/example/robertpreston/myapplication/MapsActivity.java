@@ -1,22 +1,56 @@
 package com.example.robertpreston.myapplication;
 
+import android.graphics.Canvas;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+//import com.google.android.gms.maps.GeoPoint;
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MapsActivity extends FragmentActivity {
 
+    // The minimum distance to change Updates in meters
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
+
+    // The minimum time between updates in milliseconds
+    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
+
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+
+    private EditText text;//our textbox for title
+    private Marker current;//current marker for textbox
+    private boolean drop_pin;
+    private boolean setList;
+    private Timer timer = new Timer();
+    //delay time in ms
+    private final long DELAY = 4000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setList = true;
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
+        drop_pin = true;
     }
 
     @Override
@@ -54,12 +88,243 @@ public class MapsActivity extends FragmentActivity {
     }
 
     /**
-     * This is where we can add markers or lines, add listeners or move the camera. In this case, we
-     * just add a marker near Africa.
+     * This is where we can add markers or lines, add listeners or move the camera.
      * <p/>
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
-        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+        // Enabling MyLocation in Google Map
+        //getMap().setMyLocationEnabled(true);
+
+        // BY THIS YOU CAN CHANGE MAP TYPE
+        // mGoogleMap.setMapType(mGoogleMap.MAP_TYPE_SATELLITE);
+
+        try {
+            LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+            // getting GPS status
+            boolean isGPSEnabled = locationManager
+                    .isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+            // getting network status
+            boolean isNetworkEnabled = locationManager
+                    .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+            if (!isGPSEnabled && !isNetworkEnabled) {
+                // no network provider is enabled
+                Toast.makeText(getApplicationContext(), "No Network or GPS", Toast.LENGTH_SHORT).show();
+            } else {
+                // First get location from Network Provider
+                if (isNetworkEnabled) {
+                    Toast.makeText(getApplicationContext(), "Network Enabled", Toast.LENGTH_SHORT).show();
+                    Log.d("Network", "Network");
+                    if (locationManager != null) {
+                        Criteria criteria = new Criteria();
+                        Location Currentloc = locationManager.getLastKnownLocation(
+                                locationManager.getBestProvider(criteria, true));
+                        if (Currentloc != null) {
+                            double latitude = Currentloc.getLatitude();
+                            double longitude = Currentloc.getLongitude();
+                            MarkerOptions temp = new MarkerOptions().
+                                    position(new LatLng(latitude, longitude)).title("Marker");
+                            mMap.addMarker(temp);
+                            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                                @Override
+                                public boolean onMarkerClick(Marker marker) {
+                                    if (text == null) {
+                                        text = (EditText) findViewById(R.id.marker_title);
+                                    }
+                                    text.setVisibility(View.VISIBLE);
+                                    text.setText(marker.getTitle());
+                                    current = marker;
+                                    text.addTextChangedListener(new TextWatcher() {
+                                        public void afterTextChanged(Editable s) {
+                                            if (timer != null) {
+                                                timer.cancel();
+                                            }
+                                            final Editable l = s;
+                                            timer = new Timer();
+                                            timer.schedule(new TimerTask() {
+                                                @Override
+                                                public void run() {
+                                                    runOnUiThread(new Runnable() {
+                                                                      @Override
+                                                                      public void run() {
+                                                                          if (current != null) {
+                                                                              if (current.getTitle() != l.toString()) {
+                                                                                  current.setTitle(l.toString());
+                                                                                  text.setVisibility(View.INVISIBLE);
+                                                                                  current = null;
+                                                                              }
+                                                                          }
+                                                                      }
+                                                                  }
+                                                    );
+                                                }
+                                            }, DELAY);
+                                        }
+
+                                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                                        }
+
+                                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                            if (timer != null) {
+                                                timer.cancel();
+                                            }
+                                        }
+                                    });
+                                    text.requestFocus();
+                                    return true;
+                                }
+                            });
+                        }
+                    }
+                } else if (isGPSEnabled) {
+                    Toast.makeText(getApplicationContext(), "GPS Enabled", Toast.LENGTH_SHORT).show();
+                    locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    Log.d("Network", "Network");
+                    if (locationManager != null) {
+                        Location Currentloc = locationManager
+                                .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        if (Currentloc != null) {
+                            double latitude = Currentloc.getLatitude();
+                            double longitude = Currentloc.getLongitude();
+                            MarkerOptions temp = new MarkerOptions().
+                                    position(new LatLng(latitude, longitude)).title("Marker");
+                            mMap.addMarker(temp);
+                            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                                @Override
+                                public boolean onMarkerClick(Marker marker) {
+                                    if (text == null) {
+                                        text = (EditText) findViewById(R.id.marker_title);
+                                    }
+                                    text.setVisibility(View.VISIBLE);
+                                    text.setText(marker.getTitle());
+                                    current = marker;
+                                    text.addTextChangedListener(new TextWatcher() {
+                                        public void afterTextChanged(Editable s) {
+                                            if (timer != null) {
+                                                timer.cancel();
+                                            }
+                                            final Editable l = s;
+                                            timer = new Timer();
+                                            timer.schedule(new TimerTask() {
+                                                @Override
+                                                public void run() {
+                                                    runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            if (current != null) {
+                                                                if (current.getTitle() != l.toString()) {
+                                                                    current.setTitle(l.toString());
+                                                                    text.setVisibility(View.INVISIBLE);
+                                                                    current = null;
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            }, DELAY);
+                                        }
+
+                                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                                        }
+
+                                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                            if (timer != null) {
+                                                timer.cancel();
+                                            }
+                                        }
+                                    });
+                                    text.requestFocus();
+                                    return true;
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        /*
+        MyLocation location = new MyLocation();
+        MyLocation.LocationResult locationResult = new MyLocation.LocationResult(){
+            @Override
+            public void gotLocation(Location location){
+                //we got the location
+            }
+        };
+        location.getLocation(this,locationResult);
+
+
+        mMap.addMarker(new MarkerOptions().postion(new LatLng(lat,lng)).title("Marker"));
+        //position(new LatLng(location.getLatitude(), location.getLongitude())).title("Marker"));
+        */
+        } catch (Exception e) {
+            //need to add error handling here
+        }
+    }
+
+    public void SetPins(View v) {
+        if (drop_pin == true) {//if here we know they desire to drop pins
+            mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                @Override
+                public void onMapClick(LatLng latLng) {
+                    MarkerOptions temp = new MarkerOptions().
+                            position(new LatLng(latLng.latitude, latLng.longitude)).title("Marker");
+                    mMap.addMarker(temp);
+                    mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                        @Override
+                        public boolean onMarkerClick(Marker marker) {
+                            if (text == null) {
+                                text = (EditText) findViewById(R.id.marker_title);
+                            }
+                            text.setVisibility(View.VISIBLE);
+                            text.setText(marker.getTitle());
+                            current = marker;
+                            text.addTextChangedListener(new TextWatcher() {
+                                public void afterTextChanged(Editable s) {
+                                    if (timer != null) {
+                                        timer.cancel();
+                                    }
+                                    final Editable l = s;
+                                    timer = new Timer();
+                                    timer.schedule(new TimerTask() {
+                                        @Override
+                                        public void run() {
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    if (current != null) {
+                                                        if (current.getTitle() != l.toString()) {
+                                                            current.setTitle(l.toString());
+                                                            text.setVisibility(View.INVISIBLE);
+                                                            current = null;
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }, DELAY);
+                                }
+
+                                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                                }
+
+                                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                    if (timer != null) {
+                                        timer.cancel();
+                                    }
+                                }
+                            });
+                            text.requestFocus();
+                            return true;
+                        }
+                    });
+                }
+            });
+            drop_pin = false;
+        } else {//otherwise we remove that functionality
+            mMap.setOnMapClickListener(null);
+            drop_pin = true;
+        }
     }
 }
