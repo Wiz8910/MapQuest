@@ -1,6 +1,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:id="@+id/mapscreen" tools:context=".HUD"
+    android:layout_height="match_parent" android:id="@+id/mapscreen"
     android:clickable="true"
     tools:layout="@layout/activity_maps">
     <fragment android:layout_width="match_parent"
@@ -14,7 +14,6 @@
             android:layout_height="wrap_content"
             android:text ="@string/MapAdd"
             android:id="@+id/create"
-            android:onClick="SetPins"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true" />
     </fragment>
