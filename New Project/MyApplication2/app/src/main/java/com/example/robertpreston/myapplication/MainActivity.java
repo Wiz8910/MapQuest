@@ -1,6 +1,10 @@
 package com.example.robertpreston.myapplication;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
@@ -12,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +33,7 @@ import android.content.Intent;
 
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -43,6 +50,10 @@ public class MainActivity extends AppCompatActivity
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
+    //Fragment for current screen
+    private static PlaceholderFragment currentfragment;
+    //Fragment used for map
+    private SupportMapFragment mapfragment;
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
@@ -66,10 +77,18 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
-                .commit();
+        if (position != 6) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
+                    .commit();
+        }
+        //start map stuff when its selected have to use
+        if (position == 6) {
+            Intent intent = new Intent(this, MapsActivity.class);
+            //intent.setComponent(new ComponentName("com.example.robertpreston.myapplication", "com.example.robertpreston.myapplication.MapsActivity"));
+            startActivity(intent);
+        }
     }
 
     public void onSectionAttached(int number) {
@@ -104,7 +123,6 @@ public class MainActivity extends AppCompatActivity
         actionBar.setDisplayShowTitleEnabled(true);
         actionBar.setTitle(mTitle);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -200,13 +218,4 @@ public class MainActivity extends AppCompatActivity
                     getArguments().getInt(ARG_SECTION_NUMBER));
         }
     }
-//    static public void SetPins(View view) {
-////        Toast.makeText(getApplicationContext(), "Test",Toast.LENGTH_SHORT).show();
-////        Intent intent = new Intent(this, MapsActivity.class);
-////        getFragmentManager().findFragmentByTag("MapsActivity").SetPins(view);
-////        Fragment fragment = getFragmentManager().findFragmentById(R.id.);
-////        fragment.SetPins(view);
-////        MapsActivity.SetPins(view);
-//
-//    }
 }

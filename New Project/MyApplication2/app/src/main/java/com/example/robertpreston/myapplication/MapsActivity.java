@@ -31,7 +31,8 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MapsActivity extends FragmentActivity implements View.OnClickListener{
+
+public class MapsActivity extends FragmentActivity{  // implements View.OnClickListener{
 
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
@@ -49,29 +50,24 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
     //delay time in ms
     private final long DELAY = 4000;
     private View view;
-//    @Override
-//    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
-//        view = inflater.inflate(R.layout.activity_maps, container, false);
-//        return view;
-//    }
+    /*@Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+        super.onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState);
+        view = inflater.inflate(R.layout.activity_maps, container, false);
+        return view;
+    }*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.map_activity);
         setList = true;
-        setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
         drop_pin = true;
-        final Button B = (Button) view.findViewById(R.id.create);
-    }
-    @Override
-    public void onClick(View view){
-        Toast.makeText(getApplicationContext(), "Am I running?",Toast.LENGTH_SHORT).show();
-        SetPins(view);
     }
     @Override
     protected void onResume() {
         super.onResume();
-        setUpMapIfNeeded();
+        //setUpMapIfNeeded();
     }
 
     /**
@@ -109,10 +105,10 @@ public class MapsActivity extends FragmentActivity implements View.OnClickListen
      */
     private void setUpMap() {
         // Enabling MyLocation in Google Map
-        //getMap().setMyLocationEnabled(true);
-
+        //mMap.setMyLocationEnabled(true);
         // BY THIS YOU CAN CHANGE MAP TYPE
         // mGoogleMap.setMapType(mGoogleMap.MAP_TYPE_SATELLITE);
+        Toast.makeText(getApplication().getApplicationContext(), "Test",Toast.LENGTH_SHORT).show();
 
         try {
             LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);

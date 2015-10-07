@@ -2,11 +2,12 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:id="@+id/mapscreen"
     android:clickable="true"
-    tools:layout="@layout/activity_maps">
+    tools:layout="@layout/activity_maps"
+    tools:context="com.example.robertpreston.myapplication.MapsActivity">
     <fragment android:layout_width="match_parent"
         android:layout_height="match_parent" android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
-        tools:context="com.example.robertpreston.myapplication.MapsActivity"
+
         tools:layout="@layout/activity_maps">
         <Button
             style="?android:attr/buttonStyleSmall"
@@ -14,6 +15,7 @@
             android:layout_height="wrap_content"
             android:text ="@string/MapAdd"
             android:id="@+id/create"
+            android:onClick = "SetPins"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true" />
     </fragment>
