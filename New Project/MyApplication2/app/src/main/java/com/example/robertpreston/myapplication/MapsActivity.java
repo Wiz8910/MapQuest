@@ -4,6 +4,9 @@ import android.graphics.Canvas;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.AsyncTask;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -27,10 +30,29 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+//adding gson
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import org.json.JSONArray;
 
 public class MapsActivity extends FragmentActivity{  // implements View.OnClickListener{
 
@@ -39,23 +61,18 @@ public class MapsActivity extends FragmentActivity{  // implements View.OnClickL
 
     // The minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
-
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
     private EditText text;//our textbox for title
     private Marker current;//current marker for textbox
     private boolean drop_pin;
     private boolean setList;
+    private List<Mark> markers;
     private Timer timer = new Timer();
     //delay time in ms
     private final long DELAY = 4000;
-    private View view;
-    /*@Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
-        super.onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState);
-        view = inflater.inflate(R.layout.activity_maps, container, false);
-        return view;
-    }*/
+
+    private static String name;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +80,7 @@ public class MapsActivity extends FragmentActivity{  // implements View.OnClickL
         setList = true;
         setUpMapIfNeeded();
         drop_pin = true;
+        markers = new ArrayList<Mark>();
     }
     @Override
     protected void onResume() {
@@ -108,7 +126,6 @@ public class MapsActivity extends FragmentActivity{  // implements View.OnClickL
         //mMap.setMyLocationEnabled(true);
         // BY THIS YOU CAN CHANGE MAP TYPE
         // mGoogleMap.setMapType(mGoogleMap.MAP_TYPE_SATELLITE);
-        Toast.makeText(getApplication().getApplicationContext(), "Test",Toast.LENGTH_SHORT).show();
 
         try {
             LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -138,7 +155,9 @@ public class MapsActivity extends FragmentActivity{  // implements View.OnClickL
                             double longitude = Currentloc.getLongitude();
                             MarkerOptions temp = new MarkerOptions().
                                     position(new LatLng(latitude, longitude)).title("Marker");
-                            mMap.addMarker(temp);
+                            Marker fin = mMap.addMarker(temp);
+                            markers.add(new Mark(fin.getTitle(),latitude,longitude));
+                            name = fin.getTitle();
                             mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                                 @Override
                                 public boolean onMarkerClick(Marker marker) {
@@ -148,6 +167,19 @@ public class MapsActivity extends FragmentActivity{  // implements View.OnClickL
                                     text.setVisibility(View.VISIBLE);
                                     text.setText(marker.getTitle());
                                     current = marker;
+                                    LatLng temp = marker.getPosition();
+                                    double lat = temp.latitude;
+                                    double lon = temp.longitude;
+                                    int indx = 0;
+                                    for(int i=0; i<markers.size();i++)
+                                    {
+                                        if(markers.get(i).getLat()==lat && markers.get(i).getLong()==lon){
+                                            indx = i;
+                                            break;
+                                        }
+                                    }
+                                    //I know this is ugly, this is my workaround for final keyword
+                                    final int target_indx = indx;
                                     text.addTextChangedListener(new TextWatcher() {
                                         public void afterTextChanged(Editable s) {
                                             if (timer != null) {
@@ -164,6 +196,7 @@ public class MapsActivity extends FragmentActivity{  // implements View.OnClickL
                                                                           if (current != null) {
                                                                               if (current.getTitle() != l.toString()) {
                                                                                   current.setTitle(l.toString());
+                                                                                  markers.get(target_indx).setName(l.toString());
                                                                                   text.setVisibility(View.INVISIBLE);
                                                                                   current = null;
                                                                               }
@@ -202,7 +235,8 @@ public class MapsActivity extends FragmentActivity{  // implements View.OnClickL
                             double longitude = Currentloc.getLongitude();
                             MarkerOptions temp = new MarkerOptions().
                                     position(new LatLng(latitude, longitude)).title("Marker");
-                            mMap.addMarker(temp);
+                            Marker fin = mMap.addMarker(temp);
+                            markers.add(new Mark(fin.getTitle(),latitude,longitude));
                             mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                                 @Override
                                 public boolean onMarkerClick(Marker marker) {
@@ -212,6 +246,19 @@ public class MapsActivity extends FragmentActivity{  // implements View.OnClickL
                                     text.setVisibility(View.VISIBLE);
                                     text.setText(marker.getTitle());
                                     current = marker;
+                                    LatLng temp = marker.getPosition();
+                                    double lat = temp.latitude;
+                                    double lon = temp.longitude;
+                                    int indx = 0;
+                                    for(int i=0; i<markers.size();i++)
+                                    {
+                                        if(markers.get(i).getLat()==lat && markers.get(i).getLong()==lon){
+                                            indx = i;
+                                            break;
+                                        }
+                                    }
+                                    //I know this is ugly, this is my workaround for final keyword
+                                    final int target_indx = indx;
                                     text.addTextChangedListener(new TextWatcher() {
                                         public void afterTextChanged(Editable s) {
                                             if (timer != null) {
@@ -228,6 +275,7 @@ public class MapsActivity extends FragmentActivity{  // implements View.OnClickL
                                                             if (current != null) {
                                                                 if (current.getTitle() != l.toString()) {
                                                                     current.setTitle(l.toString());
+                                                                    markers.get(target_indx).setName(l.toString());
                                                                     text.setVisibility(View.INVISIBLE);
                                                                     current = null;
                                                                 }
@@ -279,10 +327,12 @@ public class MapsActivity extends FragmentActivity{  // implements View.OnClickL
 //            Toast.makeText(getApplicationContext(), "Two", Toast.LENGTH_SHORT).show();
             mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                 @Override
-                public void onMapClick(LatLng latLng) {
+                public void onMapClick(final LatLng latLng) {
                     MarkerOptions temp = new MarkerOptions().
                             position(new LatLng(latLng.latitude, latLng.longitude)).title("Marker");
-                    mMap.addMarker(temp);
+                    Marker fin = mMap.addMarker(temp);
+                    markers.add(new Mark(fin.getTitle(),latLng.latitude,latLng.longitude));
+                    name = fin.getTitle();
 //                    Toast.makeText(getApplicationContext(), "Three", Toast.LENGTH_SHORT).show();
                     mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                         @Override
@@ -293,6 +343,20 @@ public class MapsActivity extends FragmentActivity{  // implements View.OnClickL
                             text.setVisibility(View.VISIBLE);
                             text.setText(marker.getTitle());
                             current = marker;
+                            //need to find the corresponding data in markers list
+                            LatLng temp = marker.getPosition();
+                            double lat = temp.latitude;
+                            double lon = temp.longitude;
+                            int indx = 0;
+                            for(int i=0; i<markers.size();i++)
+                            {
+                                if(markers.get(i).getLat()==lat && markers.get(i).getLong()==lon){
+                                    indx = i;
+                                    break;
+                                }
+                            }
+                            //I know this is ugly, this is my workaround for final keyword
+                            final int target_indx = indx;
 //                            Toast.makeText(getApplicationContext(), "Four", Toast.LENGTH_SHORT).show();
                             text.addTextChangedListener(new TextWatcher() {
                                 public void afterTextChanged(Editable s) {
@@ -310,6 +374,7 @@ public class MapsActivity extends FragmentActivity{  // implements View.OnClickL
                                                     if (current != null) {
                                                         if (current.getTitle() != l.toString()) {
                                                             current.setTitle(l.toString());
+                                                            markers.get(target_indx).setName(l.toString());
                                                             text.setVisibility(View.INVISIBLE);
                                                             current = null;
                                                         }
@@ -339,6 +404,165 @@ public class MapsActivity extends FragmentActivity{  // implements View.OnClickL
         } else {//otherwise we remove that functionality
             mMap.setOnMapClickListener(null);
             drop_pin = true;
+        }
+    }
+
+    //button to send map to server
+    public void SaveMap(View v){
+        //Type listOfMarkers = new TypeToken<List<Marker>>(){}.getType();
+        /*for(int i =0; i<markers.size();i++){
+            Toast.makeText(getApplication().getApplicationContext(),markers.a[i].ToString,Toast.LENGTH_SHORT).show();
+        }*/
+        Gson gson = new Gson();
+        String data = gson.toJson(markers);
+//        JSONArray data = gson.toJson(markers);
+
+        if(markers.size()==0)
+            Toast.makeText(getApplication().getApplicationContext(),"Empty",Toast.LENGTH_SHORT).show();
+        else
+            Toast.makeText(getApplication().getApplicationContext(), data,Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getApplication().getApplicationContext(),data, Toast.LENGTH_SHORT).show();
+
+    }
+
+    public static String makeRequest(String uri, String json) {
+        HttpURLConnection urlConnection;
+        String url;
+        String data = json;
+        String result = null;
+        try {
+            //Connect
+            urlConnection = (HttpURLConnection) ((new URL(uri).openConnection()));
+            urlConnection.setDoOutput(true);
+            urlConnection.setRequestProperty("Content-Type", "application/json");
+            urlConnection.setRequestProperty("Accept", "application/json");
+            urlConnection.setRequestMethod("POST");
+            urlConnection.connect();
+
+            //Write
+            OutputStream outputStream = urlConnection.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+            writer.write(data);
+            writer.close();
+            outputStream.close();
+
+            //Read
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+
+            String line = null;
+            StringBuilder sb = new StringBuilder();
+
+            while ((line = bufferedReader.readLine()) != null) {
+                sb.append(line);
+            }
+
+            bufferedReader.close();
+            result = sb.toString();
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+    /*
+    private void sendPostRequest() {
+
+        //need to get url from chris
+        URL url = new URL("http://www.geturl.com");
+        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        try{
+            InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+            readStream(in);
+            finally{
+                urlConnection.disconnect();
+            }
+        }
+
+        /*
+        class FetchTask extends AsyncTask<Void, Void, JSONArray> {
+            @Override
+            protected JSONArray doInBackground(Void... params) {
+                try {
+                    HttpConnection httpclient = new DefaultHttpClient();
+                    HttpPost httppost = new HttpPost("http://www.yoursite.com/script.php");
+
+                    // Add your data
+                    List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+                    nameValuePairs.add(new BasicNameValuePair("id", "12345"));
+                    nameValuePairs.add(new BasicNameValuePair("stringdata", "AndDev is Cool!"));
+                    httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                    // Execute HTTP Post Request
+                    HttpResponse response = httpclient.execute(httppost);
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "iso-8859-1"), 8);
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(reader.readLine() + "\n");
+                    String line = "0";
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line + "\n");
+                    }
+                    reader.close();
+                    String result11 = sb.toString();
+
+                    // parsing data
+                    return new JSONArray(result11);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(JSONArray result) {
+                if (result != null) {
+                    // do something
+                } else {
+                    // error occured
+                }
+            }
+
+        }
+    }*/
+
+    //class to store info about markes in list sad that I needed a class
+    //but json and markers didn't get along well
+    public class Mark implements Parcelable {
+        private String name;
+        private double lat;
+        private double lon;
+        public Mark(){
+            name = "default";
+            lat = 0;
+            lon = 0;
+
+        }
+        public Mark(String nme, double latitude, double longitude){
+            name = nme;
+            lat = latitude;
+            lon = longitude;
+        }
+        public void setName(String nme){ name = nme;}
+        public String getName(){return name;}
+        public Double getLat(){return lat;}
+        public Double getLong(){return lon;}
+        @Override
+        public int describeContents(){
+            return 0;
+        }
+        @Override
+        public void writeToParcel(Parcel parcel, int flag){
+            parcel.writeString(name);
+            parcel.writeDouble(lat);
+            parcel.writeDouble(lon);
+
+        }
+        public void readFromParcel(Parcel in){
+            name = in.readString();
+            lat = in.readDouble();
+            lon = in.readDouble();
         }
     }
 }

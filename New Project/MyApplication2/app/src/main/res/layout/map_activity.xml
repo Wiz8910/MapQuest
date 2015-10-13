@@ -18,7 +18,17 @@
             android:onClick = "SetPins"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true" />
+
     </fragment>
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text ="@string/MapSave"
+        android:id="@+id/save"
+        android:onClick = "SaveMap"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"/>
     <EditText
         android:focusable="true"
         android:focusableInTouchMode="true"

@@ -187,7 +187,7 @@ public class MainActivity extends AppCompatActivity
             switch(fragNumber)
             {
                 case 1: //Map
-                    rootView = inflater.inflate(R.layout.map_activity, container, false);
+                    rootView = inflater.inflate(R.layout.fragment_main, container, false);
                     break;
                 case 2: //Profile
                     rootView = inflater.inflate(R.layout.profile_activity, container, false);
@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
                     break;
                 case 7: //App Info
-                    rootView = inflater.inflate(R.layout.activity_maps, container, false);
+                    rootView = inflater.inflate(R.layout.map_activity, container, false);
                     break;
             }
             return rootView;
