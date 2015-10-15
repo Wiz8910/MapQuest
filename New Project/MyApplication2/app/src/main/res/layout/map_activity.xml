@@ -29,6 +29,15 @@
         android:onClick = "SaveMap"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"/>
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text ="Back To Main"
+        android:id="@+id/BackToMain"
+        android:onClick = "BackToMain"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"/>
     <EditText
         android:focusable="true"
         android:focusableInTouchMode="true"
