@@ -71,6 +71,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
     private EditText text;//our textbox for title
+    private static EditText maptext;
     private Marker current;//current marker for textbox
     private boolean drop_pin;
     private boolean setList;
@@ -85,6 +86,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     //Fragment used for map
     private SupportMapFragment mapfragment;
 
+    private static String map_name;
     private CharSequence mTitle;
     private static String name;
     @Override
@@ -95,7 +97,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
         setUpMapIfNeeded();
         drop_pin = true;
         markers = new ArrayList<Mark>();
-
+        map_name = "Map";
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
@@ -109,7 +111,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     @Override
     protected void onResume() {
         super.onResume();
-        //setUpMapIfNeeded();
+        setUpMapIfNeeded();
     }
 //    @Override
     public void onNavigationDrawerItemSelected(int position) {
@@ -216,6 +218,37 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                 setUpMap();
             }
         }
+        if (maptext == null) {
+            maptext = (EditText) findViewById(R.id.map_title);
+        }
+        //also need to add a text listner to map title\
+        maptext.addTextChangedListener(new TextWatcher() {
+            public void afterTextChanged(Editable s) {
+                if (timer != null) {
+                    timer.cancel();
+                }
+                timer = new Timer();
+                final Editable l = s;
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        runOnUiThread(new Runnable() {
+                                          @Override
+                                          public void run() {
+                                              map_name = l.toString();
+                                          }
+                                      }
+                        );
+                    }
+                }, DELAY);
+            }
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+        });
     }
 
     /**
@@ -395,6 +428,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                                             if (timer != null) {
                                                 timer.cancel();
                                             }
+
                                         }
                                     });
                                     text.requestFocus();
@@ -519,7 +553,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
         Gson gson = new Gson();
         String data = gson.toJson(markers);
 //        JSONArray data = gson.toJson(markers);
-
+        Toast.makeText(getApplication().getApplicationContext(),map_name,Toast.LENGTH_SHORT).show();
         if(markers.size()==0)
             Toast.makeText(getApplication().getApplicationContext(),"Empty",Toast.LENGTH_SHORT).show();
         else
