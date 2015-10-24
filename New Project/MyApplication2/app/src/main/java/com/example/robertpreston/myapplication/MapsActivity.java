@@ -49,6 +49,9 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.security.Policy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -80,7 +83,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     //delay time in ms
     private final long DELAY = 4000;
     private NavigationDrawerFragment mNavigationDrawerFragment;
-
+    private final String SERVER_URL = "http://52.89.13.174:8080/mapquest-server/json";//"ec2-52-89-13-174.us-west-2.compute.amazonaws.com:8080/mapquest-server/json";
     //Fragment for current screen
     private static PlaceholderFragment currentfragment;
     //Fragment used for map
@@ -89,6 +92,8 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     private static String map_name;
     private CharSequence mTitle;
     private static String name;
+    private static AsyncTask<String,String,String> send;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,12 +113,14 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
 //                R.id.navigation_drawer,
 //                (DrawerLayout) findViewById(R.id.drawer_layout));
     }
+
     @Override
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
     }
-//    @Override
+
+    //    @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
         if (position != 6) {
@@ -161,7 +168,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
 //        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 //        actionBar.setDisplayShowTitleEnabled(true);
 //        actionBar.setTitle(mTitle);
-        Toast.makeText(getApplication().getApplicationContext(),"Restore Action Bar",Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplication().getApplicationContext(), "Restore Action Bar", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -192,6 +199,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
 
         return super.onOptionsItemSelected(item);
     }
+
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
      * installed) and the map has not already been instantiated.. This will ensure that we only ever
@@ -291,7 +299,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                             MarkerOptions temp = new MarkerOptions().
                                     position(new LatLng(latitude, longitude)).title("Marker");
                             Marker fin = mMap.addMarker(temp);
-                            markers.add(new Mark(fin.getTitle(),latitude,longitude));
+                            markers.add(new Mark(fin.getTitle(), latitude, longitude));
                             name = fin.getTitle();
                             mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                                 @Override
@@ -306,9 +314,8 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                                     double lat = temp.latitude;
                                     double lon = temp.longitude;
                                     int indx = 0;
-                                    for(int i=0; i<markers.size();i++)
-                                    {
-                                        if(markers.get(i).getLat()==lat && markers.get(i).getLong()==lon){
+                                    for (int i = 0; i < markers.size(); i++) {
+                                        if (markers.get(i).getLat() == lat && markers.get(i).getLong() == lon) {
                                             indx = i;
                                             break;
                                         }
@@ -371,7 +378,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                             MarkerOptions temp = new MarkerOptions().
                                     position(new LatLng(latitude, longitude)).title("Marker");
                             Marker fin = mMap.addMarker(temp);
-                            markers.add(new Mark(fin.getTitle(),latitude,longitude));
+                            markers.add(new Mark(fin.getTitle(), latitude, longitude));
                             mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                                 @Override
                                 public boolean onMarkerClick(Marker marker) {
@@ -385,9 +392,8 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                                     double lat = temp.latitude;
                                     double lon = temp.longitude;
                                     int indx = 0;
-                                    for(int i=0; i<markers.size();i++)
-                                    {
-                                        if(markers.get(i).getLat()==lat && markers.get(i).getLong()==lon){
+                                    for (int i = 0; i < markers.size(); i++) {
+                                        if (markers.get(i).getLat() == lat && markers.get(i).getLong() == lon) {
                                             indx = i;
                                             break;
                                         }
@@ -467,7 +473,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                     MarkerOptions temp = new MarkerOptions().
                             position(new LatLng(latLng.latitude, latLng.longitude)).title("Marker");
                     Marker fin = mMap.addMarker(temp);
-                    markers.add(new Mark(fin.getTitle(),latLng.latitude,latLng.longitude));
+                    markers.add(new Mark(fin.getTitle(), latLng.latitude, latLng.longitude));
                     name = fin.getTitle();
 //                    Toast.makeText(getApplicationContext(), "Three", Toast.LENGTH_SHORT).show();
                     mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -484,9 +490,8 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                             double lat = temp.latitude;
                             double lon = temp.longitude;
                             int indx = 0;
-                            for(int i=0; i<markers.size();i++)
-                            {
-                                if(markers.get(i).getLat()==lat && markers.get(i).getLong()==lon){
+                            for (int i = 0; i < markers.size(); i++) {
+                                if (markers.get(i).getLat() == lat && markers.get(i).getLong() == lon) {
                                     indx = i;
                                     break;
                                 }
@@ -545,68 +550,115 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     }
 
     //button to send map to server
-    public void SaveMap(View v){
+    public void SaveMap(View v) {
         //Type listOfMarkers = new TypeToken<List<Marker>>(){}.getType();
         /*for(int i =0; i<markers.size();i++){
             Toast.makeText(getApplication().getApplicationContext(),markers.a[i].ToString,Toast.LENGTH_SHORT).show();
         }*/
         Gson gson = new Gson();
         String data = gson.toJson(markers);
+
+        data = "{ \"MapName\":\"" + map_name + "\", \"arrayname\":" + data + "}";
 //        JSONArray data = gson.toJson(markers);
-        Toast.makeText(getApplication().getApplicationContext(),map_name,Toast.LENGTH_SHORT).show();
-        if(markers.size()==0)
-            Toast.makeText(getApplication().getApplicationContext(),"Empty",Toast.LENGTH_SHORT).show();
-        else
-            Toast.makeText(getApplication().getApplicationContext(), data,Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplication().getApplicationContext(), map_name, Toast.LENGTH_SHORT).show();
+        if (markers.size() == 0)
+            Toast.makeText(getApplication().getApplicationContext(), "Empty", Toast.LENGTH_SHORT).show();
+        else {
+            Toast.makeText(getApplication().getApplicationContext(), data, Toast.LENGTH_SHORT).show();
+            makeRequest(SERVER_URL, data);
+        }
     }
 
-    public void BackToMain(View v){
+
+    public static void makeRequest(String uri, String json) {
+        final String sent = json;
+        final String address = uri;
+        send = new AsyncTask<String, String, String>() {
+            @Override
+            protected void onPreExecute()
+            {
+                Log.d("ANDRO_ASYNC", "onPreExecute()");
+            }
+
+            @Override
+            protected String doInBackground(String... params) {
+                HttpURLConnection urlConnection;
+                String data = sent;
+                String result = null;
+
+                try {
+                    URL url = new URL(address);
+
+                    //Connect
+                    urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.setDoOutput(true);
+                    urlConnection.setRequestProperty("Content-Type", "application/json");
+                    urlConnection.setRequestProperty("Accept", "application/json");
+                    urlConnection.setRequestMethod("PUT");
+                    urlConnection.connect();
+
+                    //Write
+                    OutputStream outputStream = urlConnection.getOutputStream();
+                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                    writer.write(data);
+                    writer.close();
+                    outputStream.close();
+
+                    InputStreamReader isr = new InputStreamReader(urlConnection.getInputStream());
+                    BufferedReader reader = new BufferedReader(isr);
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null)
+                    {
+                        sb.append(line + "\n");
+                    }
+                    // Response from server after login process will be stored in response variable.
+                    String response = sb.toString();
+                    // You can perform UI operations here
+                    //Toast.makeText(this,response, 0).show();
+                    isr.close();
+                    reader.close();
+                    /*
+                    //Read
+                   BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+
+                    String line = null;
+                    StringBuilder sb = new StringBuilder();
+
+                    while ((line = bufferedReader.readLine()) != null) {
+                        sb.append(line);
+                    }
+
+                    bufferedReader.close();
+                    result = sb.toString();
+                    result = sb.toString();
+                */
+
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return result;
+            }
+            /*
+            @Override
+            protected void onPostExecute(Void res)
+            {
+                Log.d("ANDRO_ASYNC", "onPostExecute()");
+                if(isCancelled()){
+
+                }
+            }*/
+        }.execute();
+    }
+
+    public void BackToMain(View v) {
 //        Toast.makeText(getApplication().getApplicationContext(),"Back to Main Screen?",Toast.LENGTH_SHORT).show();
         finish();
 //        Intent intent = new Intent(this, MainActivity.class);
 //        startActivity(intent);
         //TODO: do we want a fail safe save here before we exit the map screen?
-    }
-    public static String makeRequest(String uri, String json) {
-        HttpURLConnection urlConnection;
-        String url;
-        String data = json;
-        String result = null;
-        try {
-            //Connect
-            urlConnection = (HttpURLConnection) ((new URL(uri).openConnection()));
-            urlConnection.setDoOutput(true);
-            urlConnection.setRequestProperty("Content-Type", "application/json");
-            urlConnection.setRequestProperty("Accept", "application/json");
-            urlConnection.setRequestMethod("POST");
-            urlConnection.connect();
-
-            //Write
-            OutputStream outputStream = urlConnection.getOutputStream();
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-            writer.write(data);
-            writer.close();
-            outputStream.close();
-
-            //Read
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
-
-            String line = null;
-            StringBuilder sb = new StringBuilder();
-
-            while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line);
-            }
-
-            bufferedReader.close();
-            result = sb.toString();
-
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return result;
     }
     /*
     private void sendPostRequest() {
@@ -675,38 +727,56 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
         private String name;
         private double lat;
         private double lon;
-        public Mark(){
+
+        public Mark() {
             name = "default";
             lat = 0;
             lon = 0;
 
         }
-        public Mark(String nme, double latitude, double longitude){
+
+        public Mark(String nme, double latitude, double longitude) {
             name = nme;
             lat = latitude;
             lon = longitude;
         }
-        public void setName(String nme){ name = nme;}
-        public String getName(){return name;}
-        public Double getLat(){return lat;}
-        public Double getLong(){return lon;}
+
+        public void setName(String nme) {
+            name = nme;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Double getLat() {
+            return lat;
+        }
+
+        public Double getLong() {
+            return lon;
+        }
+
         @Override
-        public int describeContents(){
+        public int describeContents() {
             return 0;
         }
+
         @Override
-        public void writeToParcel(Parcel parcel, int flag){
+        public void writeToParcel(Parcel parcel, int flag) {
             parcel.writeString(name);
             parcel.writeDouble(lat);
             parcel.writeDouble(lon);
 
         }
-        public void readFromParcel(Parcel in){
+
+        public void readFromParcel(Parcel in) {
             name = in.readString();
             lat = in.readDouble();
             lon = in.readDouble();
         }
     }
+
     public static class PlaceholderFragment extends Fragment {
         /**
          * The fragment argument representing the section number for this
@@ -735,8 +805,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            switch(fragNumber)
-            {
+            switch (fragNumber) {
                 case 1: //Map
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
                     break;
@@ -769,4 +838,98 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                     getArguments().getInt(ARG_SECTION_NUMBER));
         }
     }
+
+    /*
+    class SendToServer extends AsyncTask<String, String, String> {
+
+
+        /*@Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(String... arg0) {
+            HttpURLConnection urlConnection;
+            //String url;
+            String data = arg0[0];
+            String result = null;
+
+            try {
+                URL url = new URL(arg0[1]);
+                //Connect
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setDoOutput(true);
+                urlConnection.setRequestProperty("Content-Type", "application/json");
+                urlConnection.setRequestProperty("Accept", "application/json");
+                urlConnection.setRequestMethod("POST");
+                urlConnection.connect();
+
+                //Write
+                OutputStream outputStream = urlConnection.getOutputStream();
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                writer.write(data);
+                writer.close();
+                outputStream.close();
+
+            /*
+            //Read
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
+
+            String line = null;
+            StringBuilder sb = new StringBuilder();
+
+            while ((line = bufferedReader.readLine()) != null) {
+                sb.append(line);
+            }
+
+            bufferedReader.close();
+            result = sb.toString();
+            result = sb.toString();
+
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return result;
+        }
+
+        /*@Override
+        protected String doInBackground(String aurl) {
+            int count;
+
+            /////////////////////
+            try {
+                // create a url object
+                URL url = new URL("http://google.com/search?sourceid=navclient&btnI=1&q=" + URLEncoder.encode(aurl, "UTF-8"));
+
+                // create a urlconnection object
+                URLConnection urlConnection = url.openConnection();
+
+                urlConnection.connect();
+                // wrap the urlconnection in a bufferedreader
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+
+                String line = bufferedReader.readLine();
+                musicurl = urlConnection.getURL().toString();
+                musicurlfinal = musicurl.replace(".com/", ".com/dl/");
+
+                // read from the urlconnection via the bufferedreader
+                while ((line = bufferedReader.readLine()) != null) {
+
+                }
+                bufferedReader.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+
+
+        }
+        protected void onProgressUpdate(String... progress) {
+            Log.d("ANDRO_ASYNC", progress[0]);
+        }
+
+    }*/
 }
