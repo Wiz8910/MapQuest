@@ -79,6 +79,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     private boolean drop_pin;
     private boolean setList;
     private List<Mark> markers;
+    private int markerindx;
     private Timer timer = new Timer();
     //delay time in ms
     private final long DELAY = 4000;
@@ -93,7 +94,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     private CharSequence mTitle;
     private static String name;
     private static AsyncTask<String,String,String> send;
-
+    private static Button deletebut;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -228,6 +229,10 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
         }
         if (maptext == null) {
             maptext = (EditText) findViewById(R.id.map_title);
+        }
+        if (deletebut == null){
+            deletebut = (Button) findViewById(R.id.deletemarker);
+            deletebut.setVisibility(View.INVISIBLE);
         }
         //also need to add a text listner to map title\
         maptext.addTextChangedListener(new TextWatcher() {
@@ -464,6 +469,16 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
         }
     }
 
+    //function to delete markers
+    public void DeleteMarker(View view){
+        text.setVisibility(View.INVISIBLE);
+        deletebut.setVisibility(View.INVISIBLE);
+        markers.remove(markerindx);
+        current.remove();
+
+    }
+
+    //function to add pins
     public void SetPins(View view) {
         if (drop_pin == true) {//if here we know they desire to drop pins
 //            Toast.makeText(getApplicationContext(), "Two", Toast.LENGTH_SHORT).show();
@@ -482,6 +497,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                             if (text == null) {
                                 text = (EditText) findViewById(R.id.marker_title);
                             }
+                            deletebut.setVisibility(View.VISIBLE);
                             text.setVisibility(View.VISIBLE);
                             text.setText(marker.getTitle());
                             current = marker;
@@ -493,12 +509,10 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                             for (int i = 0; i < markers.size(); i++) {
                                 if (markers.get(i).getLat() == lat && markers.get(i).getLong() == lon) {
                                     indx = i;
+                                    markerindx = i;
                                     break;
                                 }
                             }
-                            //I know this is ugly, this is my workaround for final keyword
-                            //TODO: This is ugly fix it
-                            final int target_indx = indx;
 //                            Toast.makeText(getApplicationContext(), "Four", Toast.LENGTH_SHORT).show();
                             text.addTextChangedListener(new TextWatcher() {
                                 public void afterTextChanged(Editable s) {
@@ -516,8 +530,16 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                                                     if (current != null) {
                                                         if (current.getTitle() != l.toString()) {
                                                             current.setTitle(l.toString());
-                                                            markers.get(target_indx).setName(l.toString());
+                                                            LatLng lat = current.getPosition();
+                                                            for (int i = 0; i < markers.size(); i++) {
+                                                                if (markers.get(i).getLat() == lat.latitude && markers.get(i).getLong() == lat.longitude) {
+                                                                    markerindx = i;
+                                                                    markers.get(markerindx).setName(l.toString());
+                                                                    break;
+                                                                }
+                                                            }
                                                             text.setVisibility(View.INVISIBLE);
+                                                            deletebut.setVisibility(View.INVISIBLE);
                                                             current = null;
                                                         }
                                                     }
