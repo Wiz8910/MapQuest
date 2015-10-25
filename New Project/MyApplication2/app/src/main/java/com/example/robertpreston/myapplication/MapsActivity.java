@@ -169,7 +169,6 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
 //        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 //        actionBar.setDisplayShowTitleEnabled(true);
 //        actionBar.setTitle(mTitle);
-        Toast.makeText(getApplication().getApplicationContext(), "Restore Action Bar", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -194,7 +193,6 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            Toast.makeText(getApplicationContext(), "This will open a settings window", Toast.LENGTH_SHORT).show();
             return true;
         }
 
@@ -313,6 +311,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                                         text = (EditText) findViewById(R.id.marker_title);
                                     }
                                     text.setVisibility(View.VISIBLE);
+                                    deletebut.setVisibility(View.VISIBLE);
                                     text.setText(marker.getTitle());
                                     current = marker;
                                     LatLng temp = marker.getPosition();
@@ -345,6 +344,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                                                                                   current.setTitle(l.toString());
                                                                                   markers.get(target_indx).setName(l.toString());
                                                                                   text.setVisibility(View.INVISIBLE);
+                                                                                  deletebut.setVisibility(View.INVISIBLE);
                                                                                   current = null;
                                                                               }
                                                                           }
@@ -391,6 +391,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                                         text = (EditText) findViewById(R.id.marker_title);
                                     }
                                     text.setVisibility(View.VISIBLE);
+                                    deletebut.setVisibility(View.VISIBLE);
                                     text.setText(marker.getTitle());
                                     current = marker;
                                     LatLng temp = marker.getPosition();
@@ -423,6 +424,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                                                                     current.setTitle(l.toString());
                                                                     markers.get(target_indx).setName(l.toString());
                                                                     text.setVisibility(View.INVISIBLE);
+                                                                    deletebut.setVisibility(View.INVISIBLE);
                                                                     current = null;
                                                                 }
                                                             }
@@ -481,7 +483,6 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     //function to add pins
     public void SetPins(View view) {
         if (drop_pin == true) {//if here we know they desire to drop pins
-//            Toast.makeText(getApplicationContext(), "Two", Toast.LENGTH_SHORT).show();
             mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
                 @Override
                 public void onMapClick(final LatLng latLng) {
@@ -490,7 +491,6 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                     Marker fin = mMap.addMarker(temp);
                     markers.add(new Mark(fin.getTitle(), latLng.latitude, latLng.longitude));
                     name = fin.getTitle();
-//                    Toast.makeText(getApplicationContext(), "Three", Toast.LENGTH_SHORT).show();
                     mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                         @Override
                         public boolean onMarkerClick(Marker marker) {
@@ -513,7 +513,6 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                                     break;
                                 }
                             }
-//                            Toast.makeText(getApplicationContext(), "Four", Toast.LENGTH_SHORT).show();
                             text.addTextChangedListener(new TextWatcher() {
                                 public void afterTextChanged(Editable s) {
                                     if (timer != null) {
@@ -573,20 +572,11 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
 
     //button to send map to server
     public void SaveMap(View v) {
-        //Type listOfMarkers = new TypeToken<List<Marker>>(){}.getType();
-        /*for(int i =0; i<markers.size();i++){
-            Toast.makeText(getApplication().getApplicationContext(),markers.a[i].ToString,Toast.LENGTH_SHORT).show();
-        }*/
         Gson gson = new Gson();
         String data = gson.toJson(markers);
 
         data = "{ \"MapName\":\"" + map_name + "\", \"arrayname\":" + data + "}";
-//        JSONArray data = gson.toJson(markers);
-        Toast.makeText(getApplication().getApplicationContext(), map_name, Toast.LENGTH_SHORT).show();
-        if (markers.size() == 0)
-            Toast.makeText(getApplication().getApplicationContext(), "Empty", Toast.LENGTH_SHORT).show();
-        else {
-            Toast.makeText(getApplication().getApplicationContext(), data, Toast.LENGTH_SHORT).show();
+        if (markers.size() != 0){
             makeRequest(SERVER_URL, data);
         }
     }
@@ -676,7 +666,6 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     }
 
     public void BackToMain(View v) {
-//        Toast.makeText(getApplication().getApplicationContext(),"Back to Main Screen?",Toast.LENGTH_SHORT).show();
         finish();
 //        Intent intent = new Intent(this, MainActivity.class);
 //        startActivity(intent);
