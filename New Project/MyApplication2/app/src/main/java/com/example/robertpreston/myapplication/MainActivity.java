@@ -195,8 +195,8 @@ public class MainActivity extends AppCompatActivity
                 case 3: //Friends
                     rootView = inflater.inflate(R.layout.friendslist_activity, container, false);
                     break;
-                case 4: //MeetUps
-                    rootView = inflater.inflate(R.layout.fragment_main, container, false);
+                case 4: //MeetUps this will become the get maps fragment
+                    rootView = inflater.inflate(R.layout.fragment_getmap, container, false);
                     break;
                 case 5: //Invites
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
