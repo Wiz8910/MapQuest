@@ -653,15 +653,6 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                 }
                 return result;
             }
-            /*
-            @Override
-            protected void onPostExecute(Void res)
-            {
-                Log.d("ANDRO_ASYNC", "onPostExecute()");
-                if(isCancelled()){
-
-                }
-            }*/
         }.execute();
     }
 
@@ -732,62 +723,6 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
         }
     }*/
 
-    //class to store info about markes in list sad that I needed a class
-    //but json and markers didn't get along well
-    public class Mark implements Parcelable {
-        private String name;
-        private double lat;
-        private double lon;
-
-        public Mark() {
-            name = "default";
-            lat = 0;
-            lon = 0;
-
-        }
-
-        public Mark(String nme, double latitude, double longitude) {
-            name = nme;
-            lat = latitude;
-            lon = longitude;
-        }
-
-        public void setName(String nme) {
-            name = nme;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Double getLat() {
-            return lat;
-        }
-
-        public Double getLong() {
-            return lon;
-        }
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(Parcel parcel, int flag) {
-            parcel.writeString(name);
-            parcel.writeDouble(lat);
-            parcel.writeDouble(lon);
-
-        }
-
-        public void readFromParcel(Parcel in) {
-            name = in.readString();
-            lat = in.readDouble();
-            lon = in.readDouble();
-        }
-    }
-
     public static class PlaceholderFragment extends Fragment {
         /**
          * The fragment argument representing the section number for this
@@ -849,98 +784,4 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                     getArguments().getInt(ARG_SECTION_NUMBER));
         }
     }
-
-    /*
-    class SendToServer extends AsyncTask<String, String, String> {
-
-
-        /*@Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected String doInBackground(String... arg0) {
-            HttpURLConnection urlConnection;
-            //String url;
-            String data = arg0[0];
-            String result = null;
-
-            try {
-                URL url = new URL(arg0[1]);
-                //Connect
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setDoOutput(true);
-                urlConnection.setRequestProperty("Content-Type", "application/json");
-                urlConnection.setRequestProperty("Accept", "application/json");
-                urlConnection.setRequestMethod("POST");
-                urlConnection.connect();
-
-                //Write
-                OutputStream outputStream = urlConnection.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                writer.write(data);
-                writer.close();
-                outputStream.close();
-
-            /*
-            //Read
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8"));
-
-            String line = null;
-            StringBuilder sb = new StringBuilder();
-
-            while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line);
-            }
-
-            bufferedReader.close();
-            result = sb.toString();
-            result = sb.toString();
-
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return result;
-        }
-
-        /*@Override
-        protected String doInBackground(String aurl) {
-            int count;
-
-            /////////////////////
-            try {
-                // create a url object
-                URL url = new URL("http://google.com/search?sourceid=navclient&btnI=1&q=" + URLEncoder.encode(aurl, "UTF-8"));
-
-                // create a urlconnection object
-                URLConnection urlConnection = url.openConnection();
-
-                urlConnection.connect();
-                // wrap the urlconnection in a bufferedreader
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-
-                String line = bufferedReader.readLine();
-                musicurl = urlConnection.getURL().toString();
-                musicurlfinal = musicurl.replace(".com/", ".com/dl/");
-
-                // read from the urlconnection via the bufferedreader
-                while ((line = bufferedReader.readLine()) != null) {
-
-                }
-                bufferedReader.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return null;
-
-
-        }
-        protected void onProgressUpdate(String... progress) {
-            Log.d("ANDRO_ASYNC", progress[0]);
-        }
-
-    }*/
 }
