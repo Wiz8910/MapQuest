@@ -78,7 +78,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     private Marker current;//current marker for textbox
     private boolean drop_pin;
     private boolean setList;
-    private List<Mark> markers;
+    private ArrayList<Mark> markers;
     private int markerindx;
     private Timer timer = new Timer();
     //delay time in ms
@@ -103,10 +103,26 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
         setUpMapIfNeeded();
         drop_pin = true;
         markers = new ArrayList<Mark>();
-        map_name = "Map";
+        Intent intent = getIntent();
+        if (intent.hasExtra("MapName"))
+            map_name = intent.getStringExtra("MapName");
+        else
+            map_name = "Map";
+        if (intent.hasExtra("Markers")) {
+            markers = intent.getParcelableArrayListExtra("Markers");
+            for(int i=0; i<markers.size();i++){
+                MarkerOptions temp = new MarkerOptions().
+                        position(new LatLng(markers.get(i).getLat(), markers.get(i).getLong())).title(markers.get(i).getName());
+                Marker fin = mMap.addMarker(temp);
+            }
+        }
+        else
+            markers = new ArrayList<Mark>();
+
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
+        addmarkerclicker();
 //
 //        // Set up the drawer.
         //TODO: this is the line that causes crash currently
@@ -304,70 +320,6 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                             Marker fin = mMap.addMarker(temp);
                             markers.add(new Mark(fin.getTitle(), latitude, longitude));
                             name = fin.getTitle();
-                            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                                @Override
-                                public boolean onMarkerClick(Marker marker) {
-                                    if (text == null) {
-                                        text = (EditText) findViewById(R.id.marker_title);
-                                    }
-                                    text.setVisibility(View.VISIBLE);
-                                    deletebut.setVisibility(View.VISIBLE);
-                                    text.setText(marker.getTitle());
-                                    current = marker;
-                                    LatLng temp = marker.getPosition();
-                                    double lat = temp.latitude;
-                                    double lon = temp.longitude;
-                                    int indx = 0;
-                                    for (int i = 0; i < markers.size(); i++) {
-                                        if (markers.get(i).getLat() == lat && markers.get(i).getLong() == lon) {
-                                            indx = i;
-                                            break;
-                                        }
-                                    }
-                                    //I know this is ugly, this is my workaround for final keyword
-                                    final int target_indx = indx;
-                                    text.addTextChangedListener(new TextWatcher() {
-                                        public void afterTextChanged(Editable s) {
-                                            if (timer != null) {
-                                                timer.cancel();
-                                            }
-                                            final Editable l = s;
-                                            timer = new Timer();
-                                            timer.schedule(new TimerTask() {
-                                                @Override
-                                                public void run() {
-                                                    runOnUiThread(new Runnable() {
-                                                                      @Override
-                                                                      public void run() {
-                                                                          if (current != null) {
-                                                                              if (current.getTitle() != l.toString()) {
-                                                                                  current.setTitle(l.toString());
-                                                                                  markers.get(target_indx).setName(l.toString());
-                                                                                  text.setVisibility(View.INVISIBLE);
-                                                                                  deletebut.setVisibility(View.INVISIBLE);
-                                                                                  current = null;
-                                                                              }
-                                                                          }
-                                                                      }
-                                                                  }
-                                                    );
-                                                }
-                                            }, DELAY);
-                                        }
-
-                                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                                        }
-
-                                        public void onTextChanged(CharSequence s, int start, int before, int count) {
-                                            if (timer != null) {
-                                                timer.cancel();
-                                            }
-                                        }
-                                    });
-                                    text.requestFocus();
-                                    return true;
-                                }
-                            });
                         }
                     }
                 } else if (isGPSEnabled) {
@@ -384,70 +336,6 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                                     position(new LatLng(latitude, longitude)).title("Marker");
                             Marker fin = mMap.addMarker(temp);
                             markers.add(new Mark(fin.getTitle(), latitude, longitude));
-                            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                                @Override
-                                public boolean onMarkerClick(Marker marker) {
-                                    if (text == null) {
-                                        text = (EditText) findViewById(R.id.marker_title);
-                                    }
-                                    text.setVisibility(View.VISIBLE);
-                                    deletebut.setVisibility(View.VISIBLE);
-                                    text.setText(marker.getTitle());
-                                    current = marker;
-                                    LatLng temp = marker.getPosition();
-                                    double lat = temp.latitude;
-                                    double lon = temp.longitude;
-                                    int indx = 0;
-                                    for (int i = 0; i < markers.size(); i++) {
-                                        if (markers.get(i).getLat() == lat && markers.get(i).getLong() == lon) {
-                                            indx = i;
-                                            break;
-                                        }
-                                    }
-                                    //I know this is ugly, this is my workaround for final keyword
-                                    final int target_indx = indx;
-                                    text.addTextChangedListener(new TextWatcher() {
-                                        public void afterTextChanged(Editable s) {
-                                            if (timer != null) {
-                                                timer.cancel();
-                                            }
-                                            final Editable l = s;
-                                            timer = new Timer();
-                                            timer.schedule(new TimerTask() {
-                                                @Override
-                                                public void run() {
-                                                    runOnUiThread(new Runnable() {
-                                                        @Override
-                                                        public void run() {
-                                                            if (current != null) {
-                                                                if (current.getTitle() != l.toString()) {
-                                                                    current.setTitle(l.toString());
-                                                                    markers.get(target_indx).setName(l.toString());
-                                                                    text.setVisibility(View.INVISIBLE);
-                                                                    deletebut.setVisibility(View.INVISIBLE);
-                                                                    current = null;
-                                                                }
-                                                            }
-                                                        }
-                                                    });
-                                                }
-                                            }, DELAY);
-                                        }
-
-                                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                                        }
-
-                                        public void onTextChanged(CharSequence s, int start, int before, int count) {
-                                            if (timer != null) {
-                                                timer.cancel();
-                                            }
-
-                                        }
-                                    });
-                                    text.requestFocus();
-                                    return true;
-                                }
-                            });
                         }
                     }
                 }
@@ -480,6 +368,76 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
 
     }
 
+    //function to add marker click listener
+    public void addmarkerclicker(){
+        if (mMap != null) {
+            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    if (text == null) {
+                        text = (EditText) findViewById(R.id.marker_title);
+                    }
+                    text.setVisibility(View.VISIBLE);
+                    deletebut.setVisibility(View.VISIBLE);
+                    text.setText(marker.getTitle());
+                    current = marker;
+                    LatLng temp = marker.getPosition();
+                    double lat = temp.latitude;
+                    double lon = temp.longitude;
+                    int indx = 0;
+                    for (int i = 0; i < markers.size(); i++) {
+                        if (markers.get(i).getLat() == lat && markers.get(i).getLong() == lon) {
+                            indx = i;
+                            break;
+                        }
+                    }
+                    //I know this is ugly, this is my workaround for final keyword
+                    final int target_indx = indx;
+                    text.addTextChangedListener(new TextWatcher() {
+                        public void afterTextChanged(Editable s) {
+                            if (timer != null) {
+                                timer.cancel();
+                            }
+                            final Editable l = s;
+                            timer = new Timer();
+                            timer.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    runOnUiThread(new Runnable() {
+                                                      @Override
+                                                      public void run() {
+                                                          if (current != null) {
+                                                              if (current.getTitle() != l.toString()) {
+                                                                  current.setTitle(l.toString());
+                                                                  markers.get(target_indx).setName(l.toString());
+                                                                  text.setVisibility(View.INVISIBLE);
+                                                                  deletebut.setVisibility(View.INVISIBLE);
+                                                                  current = null;
+                                                              }
+                                                          }
+                                                      }
+                                                  }
+                                    );
+                                }
+                            }, DELAY);
+                        }
+
+                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                        }
+
+                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                            if (timer != null) {
+                                timer.cancel();
+                            }
+                        }
+                    });
+                    text.requestFocus();
+                    return true;
+                }
+            });
+        }
+    }
     //function to add pins
     public void SetPins(View view) {
         if (drop_pin == true) {//if here we know they desire to drop pins
@@ -491,76 +449,6 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                     Marker fin = mMap.addMarker(temp);
                     markers.add(new Mark(fin.getTitle(), latLng.latitude, latLng.longitude));
                     name = fin.getTitle();
-                    mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                        @Override
-                        public boolean onMarkerClick(Marker marker) {
-                            if (text == null) {
-                                text = (EditText) findViewById(R.id.marker_title);
-                            }
-                            deletebut.setVisibility(View.VISIBLE);
-                            text.setVisibility(View.VISIBLE);
-                            text.setText(marker.getTitle());
-                            current = marker;
-                            //need to find the corresponding data in markers list
-                            LatLng temp = marker.getPosition();
-                            double lat = temp.latitude;
-                            double lon = temp.longitude;
-                            int indx = 0;
-                            for (int i = 0; i < markers.size(); i++) {
-                                if (markers.get(i).getLat() == lat && markers.get(i).getLong() == lon) {
-                                    indx = i;
-                                    markerindx = i;
-                                    break;
-                                }
-                            }
-                            text.addTextChangedListener(new TextWatcher() {
-                                public void afterTextChanged(Editable s) {
-                                    if (timer != null) {
-                                        timer.cancel();
-                                    }
-                                    final Editable l = s;
-                                    timer = new Timer();
-                                    timer.schedule(new TimerTask() {
-                                        @Override
-                                        public void run() {
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    if (current != null) {
-                                                        if (current.getTitle() != l.toString()) {
-                                                            current.setTitle(l.toString());
-                                                            LatLng lat = current.getPosition();
-                                                            for (int i = 0; i < markers.size(); i++) {
-                                                                if (markers.get(i).getLat() == lat.latitude && markers.get(i).getLong() == lat.longitude) {
-                                                                    markerindx = i;
-                                                                    markers.get(markerindx).setName(l.toString());
-                                                                    break;
-                                                                }
-                                                            }
-                                                            text.setVisibility(View.INVISIBLE);
-                                                            deletebut.setVisibility(View.INVISIBLE);
-                                                            current = null;
-                                                        }
-                                                    }
-                                                }
-                                            });
-                                        }
-                                    }, DELAY);
-                                }
-
-                                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                                }
-
-                                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                                    if (timer != null) {
-                                        timer.cancel();
-                                    }
-                                }
-                            });
-                            text.requestFocus();
-                            return true;
-                        }
-                    });
                 }
             });
             drop_pin = false;

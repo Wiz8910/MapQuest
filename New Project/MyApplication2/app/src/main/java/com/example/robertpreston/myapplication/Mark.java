@@ -26,6 +26,12 @@ public class Mark implements Parcelable {
 
     }
 
+    public Mark(Parcel in){
+        this.name = in.readString();
+        this.lat = in.readDouble();
+        this.lon = in.readDouble();
+    }
+
     public Mark(String nme, double latitude, double longitude) {
         name = nme;
         lat = latitude;
@@ -60,6 +66,13 @@ public class Mark implements Parcelable {
         return 0;
     }
 
+    /*Previous parcel attempt
+    public void readFromParcel(Parcel in) {
+        name = in.readString();
+        lat = in.readDouble();
+        lon = in.readDouble();
+    }*/
+
     @Override
     public void writeToParcel(Parcel parcel, int flag) {
         parcel.writeString(name);
@@ -68,10 +81,13 @@ public class Mark implements Parcelable {
 
     }
 
-    public void readFromParcel(Parcel in) {
-        name = in.readString();
-        lat = in.readDouble();
-        lon = in.readDouble();
-    }
+    public static final Parcelable.Creator<Mark> CREATOR = new Parcelable.Creator<Mark>(){
+        public Mark createFromParcel(Parcel in){
+            return new Mark(in);
+        }
+        public Mark[] newArray(int size){
+            return new Mark[size];
+        }
+    };
 }
 

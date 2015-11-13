@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity
             JSONObject map = new JSONObject(maps);
             final ArrayList<String> mapnames = new ArrayList<String>();
             mapnames.add((String) map.get("MapName"));
-            ArrayList<Mark> markers = new ArrayList<Mark>();
+            final ArrayList<Mark> markers = new ArrayList<Mark>();
             JSONArray jsonarr = (JSONArray) map.get("arrayname");
             for(int i =0; i<jsonarr.length();i++){
                 JSONObject tempmark = (JSONObject) jsonarr.get(i);
@@ -251,6 +251,11 @@ public class MainActivity extends AppCompatActivity
                                             public void onItemClick(AdapterView<?> adapter, View v, int position, long arg3) {
 
                                                 String selectedmap = (String) adapter.getItemAtPosition(position);
+                                                //need to change this to get marker array based on position
+                                                Intent intent = new Intent(context, MapsActivity.class);
+                                                intent.putExtra("Markers",markers);
+                                                intent.putExtra("MapName",selectedmap);
+                                                context.startActivity(intent);
                                                 Toast.makeText(context, selectedmap, Toast.LENGTH_LONG).show();
                                             }
                                         }
