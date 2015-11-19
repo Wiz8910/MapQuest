@@ -74,7 +74,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
     private EditText text;//our textbox for title
-    private static EditText maptext;
+    private EditText maptext;
     private Marker current;//current marker for textbox
     private boolean drop_pin;
     private boolean setList;
@@ -104,11 +104,24 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
         drop_pin = true;
         markers = new ArrayList<Mark>();
         Intent intent = getIntent();
-        if (intent.hasExtra("MapName"))
+
+        if(savedInstanceState!=null && savedInstanceState.containsKey("MapName")) {
+            map_name = savedInstanceState.getString("MapName");
+        }
+        else if (intent.hasExtra("MapName"))
             map_name = intent.getStringExtra("MapName");
         else
             map_name = "Map";
-        if (intent.hasExtra("Markers")) {
+        maptext.setText(map_name);
+        if(savedInstanceState!=null && savedInstanceState.containsKey("Markers")) {
+            markers = savedInstanceState.getParcelableArrayList("Markers");
+            for (int i = 0; i < markers.size(); i++) {
+                MarkerOptions temp = new MarkerOptions().
+                        position(new LatLng(markers.get(i).getLat(), markers.get(i).getLong())).title(markers.get(i).getName());
+                Marker fin = mMap.addMarker(temp);
+            }
+        }
+        else if (intent.hasExtra("Markers")) {
             markers = intent.getParcelableArrayListExtra("Markers");
             for(int i=0; i<markers.size();i++){
                 MarkerOptions temp = new MarkerOptions().
@@ -121,7 +134,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
+        //mTitle = getTitle();
         addmarkerclicker();
 //
 //        // Set up the drawer.
@@ -134,10 +147,17 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     @Override
     protected void onResume() {
         super.onResume();
-        setUpMapIfNeeded();
     }
 
-    //    @Override
+    @Override
+    public  void onSaveInstanceState(Bundle savedInstanceState){
+        super.onPause();
+        savedInstanceState.putString("MapName", map_name);
+        savedInstanceState.putParcelableArrayList("Markers", markers);
+
+    }
+
+    // @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
         if (position != 6) {
@@ -231,6 +251,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
      * method in {@link #onResume()} to guarantee that it will be called.
      */
     private void setUpMapIfNeeded() {
+        boolean addlistener = false;
         // Do a null check to confirm that we have not already instantiated the map.
         if (mMap == null) {
             // Try to obtain the map from the SupportMapFragment.
@@ -239,6 +260,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
                 setUpMap();
+                addlistener = true;
             }
         }
         if (maptext == null) {
@@ -248,34 +270,36 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
             deletebut = (Button) findViewById(R.id.deletemarker);
             deletebut.setVisibility(View.INVISIBLE);
         }
-        //also need to add a text listner to map title\
-        maptext.addTextChangedListener(new TextWatcher() {
-            public void afterTextChanged(Editable s) {
-                if (timer != null) {
-                    timer.cancel();
-                }
-                timer = new Timer();
-                final Editable l = s;
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        runOnUiThread(new Runnable() {
-                                          @Override
-                                          public void run() {
-                                              map_name = l.toString();
-                                          }
-                                      }
-                        );
+        if(addlistener) {
+            //also need to add a text listner to map title\
+            maptext.addTextChangedListener(new TextWatcher() {
+                public void afterTextChanged(Editable s) {
+                    if (timer != null) {
+                        timer.cancel();
                     }
-                }, DELAY);
-            }
+                    timer = new Timer();
+                    final Editable l = s;
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            runOnUiThread(new Runnable() {
+                                              @Override
+                                              public void run() {
+                                                  map_name = l.toString();
+                                              }
+                                          }
+                            );
+                        }
+                    }, DELAY);
+                }
 
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
 
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-        });
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                }
+            });
+        }
     }
 
     /**
