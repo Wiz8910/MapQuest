@@ -94,7 +94,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     private CharSequence mTitle;
     private static String name;
     private static AsyncTask<String,String,String> send;
-    private static Button deletebut;
+    private Button deletebut;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -136,6 +136,8 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         //mTitle = getTitle();
         addmarkerclicker();
+        if(deletebut != null)
+            deletebut.setVisibility(View.INVISIBLE);
 //
 //        // Set up the drawer.
         //TODO: this is the line that causes crash currently
@@ -147,6 +149,8 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     @Override
     protected void onResume() {
         super.onResume();
+        if(deletebut != null)
+            deletebut.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -154,7 +158,6 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
         super.onPause();
         savedInstanceState.putString("MapName", map_name);
         savedInstanceState.putParcelableArrayList("Markers", markers);
-
     }
 
     // @Override
@@ -268,7 +271,6 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
         }
         if (deletebut == null){
             deletebut = (Button) findViewById(R.id.deletemarker);
-            deletebut.setVisibility(View.INVISIBLE);
         }
         if(addlistener) {
             //also need to add a text listner to map title\
@@ -457,6 +459,28 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
                         }
                     });
                     text.requestFocus();
+                    //also have a timer in case they don't click at all
+                    if(timer == null)
+                        timer = new Timer();
+                    else {
+                        timer.cancel();
+                        timer = new Timer();
+                    }
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            runOnUiThread(new Runnable() {
+                                              @Override
+                                              public void run() {
+                                                  if (current != null) {
+                                                      text.setVisibility(View.INVISIBLE);
+                                                      deletebut.setVisibility(View.INVISIBLE);
+                                                  }
+                                              }
+                                          }
+                            );
+                        }
+                    }, DELAY);
                     return true;
                 }
             });
@@ -574,66 +598,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
 //        startActivity(intent);
         //TODO: do we want a fail safe save here before we exit the map screen?
     }
-    /*
-    private void sendPostRequest() {
 
-        //need to get url from chris
-        URL url = new URL("http://www.geturl.com");
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        try{
-            InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-            readStream(in);
-            finally{
-                urlConnection.disconnect();
-            }
-        }
-
-        /*
-        class FetchTask extends AsyncTask<Void, Void, JSONArray> {
-            @Override
-            protected JSONArray doInBackground(Void... params) {
-                try {
-                    HttpConnection httpclient = new DefaultHttpClient();
-                    HttpPost httppost = new HttpPost("http://www.yoursite.com/script.php");
-
-                    // Add your data
-                    List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-                    nameValuePairs.add(new BasicNameValuePair("id", "12345"));
-                    nameValuePairs.add(new BasicNameValuePair("stringdata", "AndDev is Cool!"));
-                    httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-                    // Execute HTTP Post Request
-                    HttpResponse response = httpclient.execute(httppost);
-
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "iso-8859-1"), 8);
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(reader.readLine() + "\n");
-                    String line = "0";
-                    while ((line = reader.readLine()) != null) {
-                        sb.append(line + "\n");
-                    }
-                    reader.close();
-                    String result11 = sb.toString();
-
-                    // parsing data
-                    return new JSONArray(result11);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-
-            @Override
-            protected void onPostExecute(JSONArray result) {
-                if (result != null) {
-                    // do something
-                } else {
-                    // error occured
-                }
-            }
-
-        }
-    }*/
 
     public static class PlaceholderFragment extends Fragment {
         /**
