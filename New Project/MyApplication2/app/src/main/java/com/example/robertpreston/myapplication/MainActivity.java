@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
-    private final static String SERVER_URL = "http://52.89.13.174:8080/mapquest-server/json";
+    private final static String SERVER_URL = "http://52.89.13.174:8080/126-6/json";
 
     private static String maps;
 
@@ -234,14 +234,23 @@ public class MainActivity extends AppCompatActivity
 
             }
             JSONObject map = new JSONObject(maps);
+
+            final ArrayList<ArrayList<Mark>> allMarkers = new ArrayList<ArrayList<Mark>>();
+            JSONArray mapsList = (JSONArray) map.get("Maps");
             final ArrayList<String> mapnames = new ArrayList<String>();
-            mapnames.add((String) map.get("MapName"));
-            final ArrayList<Mark> markers = new ArrayList<Mark>();
-            JSONArray jsonarr = (JSONArray) map.get("arrayname");
-            for(int i =0; i<jsonarr.length();i++){
-                JSONObject tempmark = (JSONObject) jsonarr.get(i);
-                Mark temp = new Mark(tempmark.getString("name"),tempmark.getDouble("lat"),tempmark.getDouble("lon"));
-                markers.add(temp);
+
+            for(int j=0;j<mapsList.length();j++)
+            {
+                JSONObject tempMap = (JSONObject) mapsList.get(j);
+                mapnames.add((String) tempMap.get("MapName"));
+                final ArrayList<Mark> markers = new ArrayList<Mark>();
+                JSONArray jsonarr = (JSONArray) tempMap.get("arrayname");
+                for (int i = 0; i < jsonarr.length(); i++) {
+                    JSONObject tempmark = (JSONObject) jsonarr.get(i);
+                    Mark temp = new Mark(tempmark.getString("name"), tempmark.getDouble("lat"), tempmark.getDouble("lng"));
+                    markers.add(temp);
+                }
+                allMarkers.add(markers);
             }
             ArrayAdapter<String> mapAdapter = new ArrayAdapter<String>(context,
                                                     android.R.layout.simple_list_item_1, mapnames);
@@ -253,7 +262,7 @@ public class MainActivity extends AppCompatActivity
                                                 String selectedmap = (String) adapter.getItemAtPosition(position);
                                                 //need to change this to get marker array based on position
                                                 Intent intent = new Intent(context, MapsActivity.class);
-                                                intent.putExtra("Markers",markers);
+                                                intent.putExtra("Markers",allMarkers.get(position));
                                                 intent.putExtra("MapName",selectedmap);
                                                 context.startActivity(intent);
                                                 Toast.makeText(context, selectedmap, Toast.LENGTH_LONG).show();
