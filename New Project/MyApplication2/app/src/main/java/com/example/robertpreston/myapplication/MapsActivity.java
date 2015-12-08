@@ -84,7 +84,7 @@ public class MapsActivity extends FragmentActivity implements NavigationDrawerFr
     //delay time in ms
     private final long DELAY = 4000;
     private NavigationDrawerFragment mNavigationDrawerFragment;
-    private final String SERVER_URL = "http://52.89.13.174:8080/mapquest-server/json";//"ec2-52-89-13-174.us-west-2.compute.amazonaws.com:8080/mapquest-server/json";
+    private final String SERVER_URL = "http://52.89.13.174:8080/126-6/json";//"ec2-52-89-13-174.us-west-2.compute.amazonaws.com:8080/mapquest-server/json";
     //Fragment for current screen
     private static PlaceholderFragment currentfragment;
     //Fragment used for map

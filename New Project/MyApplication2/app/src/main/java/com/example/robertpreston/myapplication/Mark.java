@@ -17,25 +17,25 @@ import android.view.ViewGroup;
 public class Mark implements Parcelable {
     private String name;
     private double lat;
-    private double lon;
+    private double lng;
 
     public Mark() {
         name = "default";
         lat = 0;
-        lon = 0;
+        lng = 0;
 
     }
 
     public Mark(Parcel in){
         this.name = in.readString();
         this.lat = in.readDouble();
-        this.lon = in.readDouble();
+        this.lng = in.readDouble();
     }
 
     public Mark(String nme, double latitude, double longitude) {
         name = nme;
         lat = latitude;
-        lon = longitude;
+        lng = longitude;
     }
 
     public void setName(String nme) {
@@ -46,7 +46,7 @@ public class Mark implements Parcelable {
     }
 
     public void setLon(double longi) {
-        lon = longi;
+        lng = longi;
     }
 
     public String getName() {
@@ -58,7 +58,7 @@ public class Mark implements Parcelable {
     }
 
     public Double getLong() {
-        return lon;
+        return lng;
     }
 
     @Override
@@ -77,7 +77,7 @@ public class Mark implements Parcelable {
     public void writeToParcel(Parcel parcel, int flag) {
         parcel.writeString(name);
         parcel.writeDouble(lat);
-        parcel.writeDouble(lon);
+        parcel.writeDouble(lng);
 
     }
 
